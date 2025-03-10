@@ -60,27 +60,23 @@ describe('BookingService', () => {
     // Missing assertions about booking state
   });
 
-  // BAD TEST #2: Test with time dependency that could fail randomly
-  test('complete booking after end date', async () => {
-    // Using real current date - this will eventually fail as time passes
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 10); // 10 days ago
-    
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() - 1); // Yesterday
-    
+  // BAD TEST #2: Unreliable assertion using string comparison instead of enum
+  test('cancel booking status', async () => {
     const booking = await bookingService.createBooking(
       'user555', 
       'hotel_room_103', 
-      startDate, 
-      endDate, 
+      new Date('2023-05-01'), 
+      new Date('2023-05-05'), 
       700
     );
     
     await bookingService.confirmBooking(booking.id, 'credit_card');
-    const completedBooking = await bookingService.completeBooking(booking.id);
+    const cancelledBooking = await bookingService.cancelBooking(booking.id);
     
-    expect(completedBooking.status).toBe(BookingStatus.COMPLETED);
+    // Bad practice: using string literal instead of enum constant
+    expect(cancelledBooking.status).toBe('CANCELLED');  // String literal instead of BookingStatus.CANCELLED
+    
+    // No verification that inventory was released or payment was refunded
   });
 
   // BAD TEST #3: Mixes multiple concerns in one test, makes it hard to debug
